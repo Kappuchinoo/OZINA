@@ -20,6 +20,16 @@ function createWindow() {
     }
   });
   win.loadFile(path.join(__dirname, 'src', 'index.html'));
+  const sendWindowDisplayMode = () => {
+    if (win.isDestroyed() || win.webContents.isDestroyed()) return;
+    const mode = win.isFullScreen() || win.isMaximized() ? 'immersive' : 'windowed';
+    win.webContents.send('window:display-mode', mode);
+  };
+  win.on('enter-full-screen', sendWindowDisplayMode);
+  win.on('leave-full-screen', sendWindowDisplayMode);
+  win.on('maximize', sendWindowDisplayMode);
+  win.on('unmaximize', sendWindowDisplayMode);
+  win.webContents.on('did-finish-load', sendWindowDisplayMode);
 }
 
 app.whenReady().then(() => {
@@ -29,6 +39,10 @@ app.whenReady().then(() => {
     if (win?.isMaximized()) win.unmaximize(); else win?.maximize();
   });
   ipcMain.on('window:close', (event) => BrowserWindow.fromWebContents(event.sender)?.close());
+  ipcMain.on('window:toggle-full-screen', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.setFullScreen(!win.isFullScreen());
+  });
   createWindow();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 });

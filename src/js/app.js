@@ -10,6 +10,8 @@ const prefs = { theme: 'dark', accent: '#C7FF55', ambient: true, font: 'Comforta
 let tabs = [{ id: 1, title: 'New tab', mark: 'O' }], activeId = 1, route = 'home', hideTimer, toastTimer;
 const platform = window.ozinaDesktop?.platform || 'darwin';
 document.body.dataset.platform = platform;
+document.body.dataset.windowDisplay = 'windowed';
+window.ozinaDesktop?.onWindowDisplayMode?.(mode => { document.body.dataset.windowDisplay = mode; });
 function persist() { localStorage.setItem('ozina-preferences', JSON.stringify(prefs)); }
 function applyPrefs() { document.documentElement.dataset.theme = prefs.theme; document.documentElement.style.setProperty('--accent', prefs.accent); document.documentElement.style.setProperty('--pattern-opacity', prefs.ambient ? '.13' : '0'); document.documentElement.style.setProperty('--font-ui', prefs.font === 'system' ? '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' : `'${prefs.font}', sans-serif`); document.documentElement.style.setProperty('--type-md', prefs.scale === 'compact' ? '14px' : '15px'); }
 function renderToolbar() { toolbarRoot.innerHTML = toolbarMarkup(tabs, activeId, platform, route, prefs.toolbarMode); }
@@ -25,6 +27,7 @@ render(); setInterval(tickClock, 1000);
 document.addEventListener('mousemove', event => { if (event.clientY <= 5) showToolbar(); });
 document.addEventListener('mouseleave', scheduleHide);
 document.addEventListener('keydown', event => {
+  if (event.key === 'F11') { event.preventDefault(); window.ozinaDesktop?.toggleFullScreen?.(); }
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'l') { event.preventDefault(); showToolbar(); document.querySelector('#address-input')?.focus(); document.querySelector('#address-input')?.select(); }
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 't') { event.preventDefault(); newTab(); }
   if (event.key === 'Escape') { document.querySelector('#toolbar-menu')?.setAttribute('hidden',''); document.querySelector('#address-input')?.blur(); scheduleHide(); }

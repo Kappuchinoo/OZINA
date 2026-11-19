@@ -2,7 +2,7 @@
 .home-mark { font-size: 12px; font-weight: 600; letter-spacing: .42em; margin-left: .42em; }
 .home-clock { margin: 30px 0 4px; font-size: var(--type-display); font-weight: 400; letter-spacing: -.085em; line-height: 1; font-variant-numeric: tabular-nums; }
 .home-date { color: var(--text-muted); font-size: 12px; letter-spacing: .03em; }
-.search-box { width: min(540px, 88vw); height: 52px; margin-top: 24px; display: flex; align-items: center; gap: 13px; padding: 0 17px; border: 1px solid var(--line-strong); border-radius: var(--radius-md); background: color-mix(in srgb, var(--surface) 78%, transparent); transition: border-color var(--motion-normal), background var(--motion-normal); }
+.search-box { width: min(540px, 88vw); height: 52px; margin-top: 24px; display: flex; align-items: center; gap: 13px; padding: 0 17px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: color-mix(in srgb, var(--surface) 78%, transparent); transition: border-color var(--motion-normal), background var(--motion-normal); }
 .search-box:focus-within { border-color: var(--accent); background: var(--surface); }.search-box .icon { color: var(--text-muted); }
 .search-input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 13px; }.search-input::placeholder { color: var(--text-muted); }
 .search-hint { font: 10px var(--font-mono); color: var(--text-faint); white-space: nowrap; }
