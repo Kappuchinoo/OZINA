@@ -1,0 +1,27 @@
+.toolbar { position: absolute; z-index: 20; inset: 0 0 auto; height: 94px; display: block; padding: 8px 18px 7px; background: linear-gradient(var(--bg) 88%, transparent); opacity: 0; transform: translateY(-12px); pointer-events: none; transition: opacity 180ms ease, transform 220ms var(--ease-out); }
+.toolbar.is-visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.toolbar-edge { position: absolute; z-index: 19; inset: 0 0 auto; height: 5px; }
+.toolbar-main { height: 40px; display: grid; grid-template-columns: minmax(150px, 1fr) minmax(280px, min(44vw, 620px)) minmax(150px, 1fr); align-items: center; gap: 14px; }
+.toolbar-leading { display: flex; align-items: center; gap: 3px; min-width: 0; }
+.toolbar-navigation { display: flex; align-items: center; justify-content: center; gap: 0; width: 76px; height: 36px; flex: 0 0 auto; padding: 2px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: var(--surface-raised); }
+.toolbar-navigation .tool-button { width: 35px; height: 30px; border-radius: var(--radius-pill); }
+.toolbar-navigation .tool-button + .tool-button { border-left: 1px solid var(--line-strong); border-radius: 0 var(--radius-pill) var(--radius-pill) 0; }
+.toolbar-navigation .tool-button:first-child { border-radius: var(--radius-pill) 0 0 var(--radius-pill); }
+.window-controls { display: flex; align-items: center; gap: 7px; height: 28px; flex: 0 0 auto; }
+.window-control { width: 11px; height: 11px; border: 0; border-radius: 50%; padding: 0; background: var(--text-faint); cursor: pointer; }
+.window-control.close { background: #ff6259; }.window-control.minimize { background: #ffbd2e; }.window-control.maximize { background: #28c840; }
+.window-controls.is-windows { margin-left: 7px; padding-left: 5px; border-left: 1px solid var(--line); gap: 0; height: 30px; }
+.window-controls.is-windows .window-control { width: 38px; height: 30px; border-radius: 0; color: var(--text); background: transparent; font-size: 15px; }
+.window-controls.is-windows .window-control:hover { background: var(--surface-hover); }.window-controls.is-windows .window-control.close:hover { background: #c42b1c; }
+.tab-row { display: flex; height: 33px; margin-top: 6px; }
+.tab-strip { display: flex; min-width: 100px; width: 100%; align-items: center; justify-content: center; gap: 6px; height: 33px; -webkit-app-region: drag; }
+.address-wrap { position: relative; width: 100%; min-width: 0; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-pill); transition: border-color var(--motion-fast), background var(--motion-fast); }
+.address-wrap:focus-within { border-color: var(--line-strong); background: var(--surface-hover); }
+.address-input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--text); background: transparent; font-size: 12px; }
+.address-input::placeholder { color: var(--text-muted); }.address-icon { color: var(--text-muted); flex: 0 0 auto; }
+.toolbar-actions { display: flex; justify-self: end; gap: 2px; height: 34px; align-items: center; min-width: 0; }
+.tool-button { position: relative; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: var(--radius-sm); color: var(--text-muted); background: transparent; cursor: pointer; transition: color var(--motion-fast), background var(--motion-fast); }
+.tool-button:hover, .tool-button.is-active { color: var(--text); background: var(--surface-raised); }.tool-button.is-saved { color: var(--accent); }
+.toolbar-menu { position: absolute; z-index: 25; top: 82px; right: 18px; width: 204px; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: 0 14px 40px #0005; }
+.menu-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px; border: 0; border-radius: 5px; background: transparent; color: var(--text); text-align: left; font-size: 12px; cursor: pointer; }.menu-item:hover { background: var(--surface-hover); }
+@media (max-width: 900px) { .toolbar-main { grid-template-columns: auto minmax(150px, 1fr) auto; gap: 8px; }.toolbar-actions { gap: 0; }.toolbar-leading { gap: 0; } }

@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap');
+:root {
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px;
+  --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; --space-16: 64px;
+  --radius-sm: 5px; --radius-md: 9px; --radius-lg: 14px; --radius-pill: 999px;
+  --border-width: 1px; --content-width: 1060px; --toolbar-height: 70px;
+  --ease-out: cubic-bezier(.2,.75,.25,1); --motion-fast: 140ms; --motion-normal: 240ms;
+}
+* { box-sizing: border-box; }
+html, body, #app { width: 100%; height: 100%; margin: 0; }
+body { overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-ui); }
+button, input, select { font: inherit; }
+button { color: inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.app-shell { position: relative; isolation: isolate; overflow: hidden; background: var(--bg); }
+.app-shell::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: var(--pattern-opacity); background-image: radial-gradient(var(--pattern-dot) .75px, transparent .75px); background-size: 22px 22px; mask-image: linear-gradient(120deg, transparent 10%, #000 72%); }
+.view-root { position: absolute; inset: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+body[data-platform='darwin'] .window-controls { visibility: hidden; }
+.eyebrow, .mono { font-family: var(--font-mono); letter-spacing: .11em; text-transform: uppercase; }
+.eyebrow { color: var(--text-muted); font-size: 10px; }
+.icon { width: 18px; height: 18px; display: block; }
+.toast { position: absolute; z-index: 30; left: 50%; bottom: 28px; transform: translate(-50%, 10px); padding: 11px 16px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface); color: var(--text); font: 11px var(--font-mono); opacity: 0; pointer-events: none; transition: opacity var(--motion-normal), transform var(--motion-normal); }
+.toast.is-visible { opacity: 1; transform: translate(-50%, 0); }

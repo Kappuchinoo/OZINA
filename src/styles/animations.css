@@ -1,0 +1,4 @@
+@keyframes view-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ambient-drift { from { transform: translate3d(-1%, 0, 0); } to { transform: translate3d(1%, 1.5%, 0); } }
+.app-shell::before { animation: ambient-drift 18s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }

@@ -1,0 +1,14 @@
+.home-view { min-height: 100%; display: flex; flex-direction: column; align-items: center; padding: clamp(112px, 18vh, 190px) 28px 44px; animation: view-in 500ms var(--ease-out) both; }
+.home-mark { font-size: 12px; font-weight: 600; letter-spacing: .42em; margin-left: .42em; }
+.home-clock { margin: 30px 0 4px; font-size: var(--type-display); font-weight: 400; letter-spacing: -.085em; line-height: 1; font-variant-numeric: tabular-nums; }
+.home-date { color: var(--text-muted); font-size: 12px; letter-spacing: .03em; }
+.search-box { width: min(540px, 88vw); height: 52px; margin-top: 24px; display: flex; align-items: center; gap: 13px; padding: 0 17px; border: 1px solid var(--line-strong); border-radius: var(--radius-md); background: color-mix(in srgb, var(--surface) 78%, transparent); transition: border-color var(--motion-normal), background var(--motion-normal); }
+.search-box:focus-within { border-color: var(--accent); background: var(--surface); }.search-box .icon { color: var(--text-muted); }
+.search-input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 13px; }.search-input::placeholder { color: var(--text-muted); }
+.search-hint { font: 10px var(--font-mono); color: var(--text-faint); white-space: nowrap; }
+.shortcuts { width: min(550px, 90vw); margin-top: 40px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
+.shortcut { display: flex; flex-direction: column; align-items: center; gap: 11px; min-width: 0; padding: 10px 4px; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-muted); font-size: 10px; cursor: pointer; transition: transform var(--motion-fast), color var(--motion-fast); }
+.shortcut:hover { color: var(--text); transform: translateY(-3px); }.shortcut-mark { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 13px; color: var(--text); background: var(--surface); font-size: 13px; font-weight: 600; }.shortcut:nth-child(2) .shortcut-mark { color: var(--accent); }.shortcut:nth-child(4) .shortcut-mark { font-family: var(--font-mono); font-size: 10px; }
+.home-footer { width: min(var(--content-width), 100%); margin-top: auto; padding-top: 54px; display: flex; justify-content: space-between; align-items: center; color: var(--text-faint); font: 9px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+.home-footer button { padding: 7px; border: 0; background: transparent; color: var(--text-muted); cursor: pointer; }.home-footer button:hover { color: var(--accent); }
+@media (max-width: 640px) { .shortcuts { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 8px; } }

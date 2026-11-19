@@ -1,0 +1,2 @@
+:root { --font-ui: 'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; --font-mono: 'Comfortaa', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; --type-xs: 11px; --type-sm: 13px; --type-md: 15px; --type-lg: 20px; --type-xl: 32px; --type-display: clamp(54px, 8vw, 104px); }
+body { font-size: var(--type-md); font-weight: 400; letter-spacing: -.015em; }
