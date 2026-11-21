@@ -15,6 +15,6 @@ export function renderTabs(tabs, activeId) {
     const favicon = safeFavicon(tab.favicon);
     const mark = escapeHTML(tab.mark || title.slice(0, 1));
     const errorTitle = tab.error ? title + ' — ' + escapeHTML(tab.error) : title;
-    return `<button class="tab ${tab.id === activeId ? 'is-active' : ''}" data-tab="${escapeHTML(tab.id)}" title="${errorTitle}" aria-label="${title}"><span class="tab-mark ${tab.isLoading ? 'is-loading' : ''} ${tab.error ? 'has-error' : ''}">${favicon ? `<img src="${escapeHTML(favicon)}" alt="" />` : mark}${tab.isLoading ? '<i class="tab-spinner" aria-hidden="true"></i>' : ''}</span><span class="tab-title">${title}</span><span class="tab-close" data-close-tab="${escapeHTML(tab.id)}" aria-label="Close ${title}">×</span></button>`;
+    return `<button class="tab ${tab.id === activeId ? 'is-active' : ''}" data-tab="${escapeHTML(tab.id)}" title="${errorTitle}" aria-label="${title}"><span class="tab-mark ${tab.isLoading ? 'is-loading' : ''} ${tab.error ? 'has-error' : ''}">${favicon ? `<img src="${escapeHTML(favicon)}" alt="" />` : mark}${tab.isLoading ? '<i class="tab-spinner" aria-hidden="true"></i>' : ''}</span><span class="tab-title">${title}</span><span class="tab-close" data-close-tab="${escapeHTML(tab.id)}" aria-label="Close ${title}"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="m3 3 6 6m0-6L3 9" /></svg></span></button>`;
   }).join('');
 }

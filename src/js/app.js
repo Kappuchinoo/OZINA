@@ -42,15 +42,23 @@ function reportLayout() {
   layoutFrame = requestAnimationFrame(() => {
     const toolbar = document.querySelector('.toolbar');
     const visible = toolbar && toolbar.classList.contains('is-visible');
-    browser?.setLayout({ toolbarHeight: visible ? toolbar.offsetHeight : route === 'browser' ? 5 : 0 });
+    const menu = document.querySelector('#toolbar-menu');
+    const menuBottom = visible && menu && !menu.hidden
+      ? Math.ceil(menu.getBoundingClientRect().bottom - toolbar.getBoundingClientRect().top)
+      : 0;
+    const toolbarHeight = visible ? Math.max(toolbar.offsetHeight, menuBottom) : route === 'browser' ? 5 : 0;
+    browser?.setLayout({ toolbarHeight });
   });
 }
 function renderToolbar(preserveAddress = false) {
+  const menuWasOpen = document.querySelector('#toolbar-menu')?.hidden === false;
   const previousInput = document.querySelector('#address-input');
   const keepFocus = preserveAddress && previousInput === document.activeElement;
   const previousValue = keepFocus ? previousInput.value : '';
   const selection = keepFocus ? [previousInput.selectionStart, previousInput.selectionEnd] : null;
   toolbarRoot.innerHTML = toolbarMarkup(tabs, activeId, platform, route, prefs.toolbarMode);
+  const menu = document.querySelector('#toolbar-menu');
+  if (menu && menuWasOpen) menu.hidden = false;
   const input = document.querySelector('#address-input');
   const current = activeTab();
   if (keepFocus) {
@@ -192,6 +200,7 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape') {
     if (activeTab()?.isLoading) void browser?.stop();
     document.querySelector('#toolbar-menu')?.setAttribute('hidden', '');
+    reportLayout();
     document.querySelector('#address-input')?.blur();
     scheduleHide();
   }

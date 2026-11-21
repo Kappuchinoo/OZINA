@@ -80,11 +80,13 @@ class BrowserTabManager {
       if (isWebURL(url)) this.createTab(url);
       return { action: 'deny' };
     });
-    contents.on('will-navigate', (event, details) => {
-      if (!isWebURL(details.url)) event.preventDefault();
+    contents.on('will-navigate', (event, details, legacyURL) => {
+      const url = typeof details === 'string' ? details : details?.url || legacyURL || event.url;
+      if (!isWebURL(url)) event.preventDefault();
     });
-    contents.on('will-redirect', (event, details) => {
-      if (!isWebURL(details.url)) event.preventDefault();
+    contents.on('will-redirect', (event, details, legacyURL) => {
+      const url = typeof details === 'string' ? details : details?.url || legacyURL || event.url;
+      if (!isWebURL(url)) event.preventDefault();
     });
     contents.on('did-start-loading', () => { tab.isLoading = true; tab.error = ''; this.emitState(); });
     contents.on('did-stop-loading', () => { tab.isLoading = false; this.emitState(); });
