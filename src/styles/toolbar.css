@@ -24,6 +24,7 @@ body[data-window-display='windowed'] .toolbar-leading { padding-left: clamp(112p
 .toolbar-actions { display: flex; justify-self: end; gap: 2px; height: 34px; align-items: center; min-width: 0; }
 .tool-button { position: relative; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: var(--radius-sm); color: var(--text-muted); background: transparent; cursor: pointer; transition: color var(--motion-fast), background var(--motion-fast); }
 .tool-button:hover, .tool-button.is-active { color: var(--text); background: var(--surface-raised); }.tool-button.is-saved { color: var(--accent); }
+.tool-button:disabled { opacity: .34; cursor: default; pointer-events: none; }
 .toolbar-menu { position: absolute; z-index: 25; top: 82px; right: 18px; width: 204px; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: 0 14px 40px #0005; }
 .menu-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px; border: 0; border-radius: 5px; background: transparent; color: var(--text); text-align: left; font-size: 12px; cursor: pointer; }.menu-item:hover { background: var(--surface-hover); }
 @media (max-width: 900px) { .toolbar-main { grid-template-columns: auto minmax(150px, 1fr) auto; gap: 8px; }.toolbar-actions { gap: 0; }.toolbar-leading { gap: 0; } }

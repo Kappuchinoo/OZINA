@@ -1,3 +1,20 @@
+function escapeHTML(value) {
+  return String(value || '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+}
+
+function safeFavicon(value) {
+  try {
+    const url = new URL(value);
+    return ['https:', 'http:'].includes(url.protocol) ? url.href : '';
+  } catch { return ''; }
+}
+
 export function renderTabs(tabs, activeId) {
-  return tabs.map(tab => `<button class="tab ${tab.id === activeId ? 'is-active' : ''}" data-tab="${tab.id}" title="${tab.title}"><span class="site-avatar" style="width:16px;height:16px;border-radius:4px;font-size:8px">${tab.mark}</span><span class="tab-title">${tab.title}</span>${tabs.length > 1 ? `<span class="tab-close" data-close-tab="${tab.id}" aria-label="Close ${tab.title}">×</span>` : ''}</button>`).join('');
+  return tabs.map(tab => {
+    const title = escapeHTML(tab.title || 'New tab');
+    const favicon = safeFavicon(tab.favicon);
+    const mark = escapeHTML(tab.mark || title.slice(0, 1));
+    const errorTitle = tab.error ? title + ' — ' + escapeHTML(tab.error) : title;
+    return `<button class="tab ${tab.id === activeId ? 'is-active' : ''}" data-tab="${escapeHTML(tab.id)}" title="${errorTitle}" aria-label="${title}"><span class="tab-mark ${tab.isLoading ? 'is-loading' : ''} ${tab.error ? 'has-error' : ''}">${favicon ? `<img src="${escapeHTML(favicon)}" alt="" />` : mark}${tab.isLoading ? '<i class="tab-spinner" aria-hidden="true"></i>' : ''}</span><span class="tab-title">${title}</span><span class="tab-close" data-close-tab="${escapeHTML(tab.id)}" aria-label="Close ${title}">×</span></button>`;
+  }).join('');
 }
