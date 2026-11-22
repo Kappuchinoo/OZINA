@@ -2,10 +2,12 @@ import { toolbarMarkup } from './toolbar.js';
 import { DEFAULT_SHORTCUTS, renderHome, tickClock } from './newtab.js';
 import { renderSettings } from './settings.js';
 import { renderLibrary } from './library.js';
+import { renderPrivacyControl, renderPrivacyPrompt } from './privacy-control.js';
 
 const toolbarRoot = document.querySelector('#toolbar-root');
 const viewRoot = document.querySelector('#view-root');
 const toast = document.querySelector('#toast');
+const privacyRoot = document.querySelector('#privacy-root');
 const desktop = window.ozinaDesktop;
 const browser = desktop?.browser;
 const prefs = { theme: 'dark', accent: '#C7FF55', ambient: true, font: 'Comfortaa', scale: 'comfortable', engine: 'DuckDuckGo', shortcuts: DEFAULT_SHORTCUTS, toolbarMode: 'always', ...JSON.parse(localStorage.getItem('ozina-preferences') || '{}') };
@@ -16,6 +18,10 @@ let route = 'home';
 let hideTimer;
 let toastTimer;
 let layoutFrame = 0;
+let privacyState = null;
+let privacyPanelOpen = false;
+let privacyPrompt = null;
+let findOpen = false;
 const platform = desktop?.platform || 'darwin';
 document.body.dataset.platform = platform;
 document.body.dataset.windowDisplay = 'windowed';
@@ -26,6 +32,22 @@ desktop?.onShortcut?.(shortcut => {
     const input = document.querySelector('#address-input');
     input?.focus(); input?.select();
   }
+  if (shortcut === 'find') { findOpen = true; renderPrivacy(); showToolbar(); }
+  if (shortcut === 'escape') {
+    privacyPrompt = null; privacyPanelOpen = false; findOpen = false;
+    document.querySelector('#toolbar-menu')?.setAttribute('hidden', '');
+    renderPrivacy();
+  }
+});
+desktop?.onPrivacyPrompt?.(prompt => { privacyPrompt = prompt; privacyPanelOpen = false; showToolbar(); renderPrivacy(); reportLayout(); });
+desktop?.onPrivacyUpdated?.(() => { void refreshPrivacy(); });
+desktop?.onPrivacyNotice?.(notice => flash(String(notice || 'OS permission was not granted.')));
+desktop?.onFindResult?.(result => {
+  const count = document.querySelector('#find-count');
+  if (count) count.textContent = `${result.activeMatchOrdinal || 0} / ${result.matches || 0}`;
+});
+desktop?.onPrivacyOutsideClick?.(() => {
+  if (privacyPanelOpen) { privacyPanelOpen = false; renderPrivacy(); reportLayout(); }
 });
 
 function persist() { localStorage.setItem('ozina-preferences', JSON.stringify(prefs)); }
@@ -46,8 +68,14 @@ function reportLayout() {
     const menuBottom = visible && menu && !menu.hidden
       ? Math.ceil(menu.getBoundingClientRect().bottom - toolbar.getBoundingClientRect().top)
       : 0;
-    const toolbarHeight = visible ? Math.max(toolbar.offsetHeight, menuBottom) : route === 'browser' ? 5 : 0;
-    browser?.setLayout({ toolbarHeight });
+    const control = privacyRoot.querySelector('.oz-control-panel');
+    const prompt = privacyRoot.querySelector('.privacy-prompt');
+    const findBar = privacyRoot.querySelector('.find-bar');
+    const findBottom = findBar ? Math.ceil(findBar.getBoundingClientRect().bottom) : 0;
+    const toolbarHeight = visible ? Math.max(toolbar.offsetHeight, menuBottom, findBottom) : route === 'browser' ? 5 : 0;
+    const privacyColumn = control || prompt;
+    const rightInset = route === 'browser' && !activeTab()?.isHome && privacyColumn ? privacyColumn.offsetWidth + 40 : 0;
+    browser?.setLayout({ toolbarHeight, rightInset });
   });
 }
 function renderToolbar(preserveAddress = false) {
@@ -72,6 +100,37 @@ function renderToolbar(preserveAddress = false) {
   document.querySelectorAll('.toolbar-navigation [data-action="forward"]').forEach(button => { button.disabled = !current?.canGoForward; });
   reportLayout();
 }
+function renderPrivacy() {
+  privacyRoot.innerHTML = renderPrivacyControl(privacyState, privacyPanelOpen)
+    + (findOpen ? `<form class="find-bar" id="find-bar"><input id="find-input" aria-label="Find on page" placeholder="Find on page" autocomplete="off"><span id="find-count" class="mono">0 / 0</span><button type="button" data-find-direction="previous" aria-label="Previous match">↑</button><button type="button" data-find-direction="next" aria-label="Next match">↓</button><button type="button" data-find-close aria-label="Close find">×</button></form>` : '')
+    + renderPrivacyPrompt(privacyPrompt);
+  document.querySelector('[data-privacy-toggle]')?.setAttribute('aria-expanded', String(privacyPanelOpen));
+  if (findOpen) document.querySelector('#find-input')?.focus();
+  reportLayout();
+}
+async function refreshPrivacy() {
+  if (!activeId || !desktop?.privacy) { privacyState = null; renderPrivacy(); return; }
+  const requestedTabId = activeId;
+  let nextState = null;
+  try { nextState = await desktop.privacy.getSiteState(requestedTabId); }
+  catch {}
+  if (activeId !== requestedTabId) return;
+  privacyState = nextState;
+  renderPrivacy();
+}
+async function answerPrivacyPrompt(choice) {
+  const prompt = privacyPrompt;
+  if (!prompt) return;
+  if (prompt.kind === 'permission') await desktop.privacy.resolvePrompt(prompt.id, choice);
+  else if (prompt.kind === 'popup') await desktop.privacy.resolvePopup(prompt.id, choice);
+  else if (prompt.kind === 'download') await desktop.privacy.resolveDownload(prompt.id, choice);
+  else if (prompt.kind === 'device') {
+    const selected = document.querySelector('input[name="device-choice"]:checked')?.value || '';
+    await desktop.privacy.resolveDevice(prompt.id, choice, selected);
+  }
+  privacyPrompt = null;
+  await refreshPrivacy();
+}
 function renderView() {
   if (route === 'browser') viewRoot.replaceChildren();
   else if (route === 'home') viewRoot.innerHTML = renderHome(prefs.shortcuts);
@@ -89,7 +148,7 @@ function scheduleHide() {
   clearTimeout(hideTimer);
   hideTimer = setTimeout(() => {
     const toolbar = document.querySelector('.toolbar');
-    if (!toolbar?.matches(':hover') && !toolbar?.contains(document.activeElement) && !document.querySelector('#toolbar-menu:not([hidden])')) {
+    if (!privacyPanelOpen && !privacyPrompt && !findOpen && !toolbar?.matches(':hover') && !toolbar?.contains(document.activeElement) && !document.querySelector('#toolbar-menu:not([hidden])')) {
       toolbar?.classList.remove('is-visible');
       reportLayout();
     }
@@ -129,6 +188,7 @@ function syncBrowserState(state) {
   if (current && !current.isHome) document.title = (current.title || current.url || 'New tab') + ' — OZINA';
   else document.title = 'OZINA — Less interface. More internet.';
   if (current?.error) flash(current.error);
+  void refreshPrivacy();
 }
 async function navigateAddress(value) {
   const query = String(value || '').trim();
@@ -173,7 +233,7 @@ document.addEventListener('mousemove', event => { if (event.clientY <= 5) showTo
 document.addEventListener('mouseleave', scheduleHide);
 document.addEventListener('keydown', event => {
   const modifier = platform === 'darwin' ? event.metaKey : event.ctrlKey;
-  if (event.key === 'F11' || platform === 'darwin' && modifier && event.key.toLowerCase() === 'f') {
+  if (event.key === 'F11' || platform === 'darwin' && event.ctrlKey && event.metaKey && event.key.toLowerCase() === 'f') {
     event.preventDefault();
     desktop?.toggleFullScreen?.();
   }
@@ -182,6 +242,8 @@ document.addEventListener('keydown', event => {
     const input = document.querySelector('#address-input');
     input?.focus(); input?.select();
   }
+  if (modifier && event.key.toLowerCase() === 'f' && !(platform === 'darwin' && event.ctrlKey)) { event.preventDefault(); findOpen = true; renderPrivacy(); showToolbar(); }
+  if (modifier && event.shiftKey && event.key.toLowerCase() === 'n') { event.preventDefault(); void browser?.openPrivateTab(); }
   if (modifier && event.key.toLowerCase() === 't') { event.preventDefault(); createTab(); }
   if (modifier && event.key.toLowerCase() === 'w') { event.preventDefault(); if (activeId) void browser?.closeTab(activeId); }
   if (modifier && event.key.toLowerCase() === 'r' || event.key === 'F5') { event.preventDefault(); void browser?.reload(); }
@@ -198,6 +260,16 @@ document.addEventListener('keydown', event => {
   if (event.altKey && event.key === 'ArrowLeft') { event.preventDefault(); void browser?.back(); }
   if (event.altKey && event.key === 'ArrowRight') { event.preventDefault(); void browser?.forward(); }
   if (event.key === 'Escape') {
+    if (privacyPrompt) {
+      if (privacyPrompt.kind === 'screen') void desktop?.privacy?.resolveScreen(privacyPrompt.id, '');
+      else if (privacyPrompt.kind === 'permission' || privacyPrompt.kind === 'device') void desktop?.privacy?.resolvePrompt(privacyPrompt.id, 'block');
+      else if (privacyPrompt.kind === 'popup') void desktop?.privacy?.resolvePopup(privacyPrompt.id, 'block');
+      else if (privacyPrompt.kind === 'download') void desktop?.privacy?.resolveDownload(privacyPrompt.id, 'block');
+      privacyPrompt = null;
+    }
+    privacyPanelOpen = false;
+    findOpen = false;
+    renderPrivacy();
     if (activeTab()?.isLoading) void browser?.stop();
     document.querySelector('#toolbar-menu')?.setAttribute('hidden', '');
     reportLayout();
@@ -214,8 +286,47 @@ document.addEventListener('click', event => {
   const closeTab = event.target.closest('[data-close-tab]');
   const tabButton = event.target.closest('[data-tab]');
   const menuTrigger = event.target.closest('[data-menu]');
+  const privacyToggle = event.target.closest('[data-privacy-toggle]');
+  if (privacyPanelOpen && !event.target.closest('.oz-control-panel, [data-privacy-toggle]')) { privacyPanelOpen = false; renderPrivacy(); }
   if (windowAction) { desktop?.[windowAction === 'maximize' ? 'toggleMaximize' : windowAction]?.(); return; }
+  if (privacyToggle) {
+    privacyPanelOpen = !privacyPanelOpen;
+    document.querySelector('#toolbar-menu').hidden = true;
+    showToolbar();
+    void refreshPrivacy();
+    return;
+  }
+  if (event.target.closest('[data-privacy-close]')) { privacyPanelOpen = false; renderPrivacy(); return; }
+  if (event.target.closest('[data-privacy-private]')) { privacyPanelOpen = false; void browser?.openPrivateTab(); renderPrivacy(); return; }
+  if (event.target.closest('[data-privacy-reset]')) {
+    void desktop?.privacy?.resetSite(activeId).then(() => { flash('Site permissions reset'); void refreshPrivacy(); }); return;
+  }
+  if (event.target.closest('[data-privacy-clear-site]')) {
+    void desktop?.privacy?.clearSiteData(activeId).then(() => { flash('Website data cleared'); void refreshPrivacy(); }); return;
+  }
+  if (event.target.closest('[data-privacy-clear-all]')) {
+    if (window.confirm('Clear cookies, cache, and website storage for this browsing session?')) void desktop?.privacy?.clearAllData(Boolean(privacyState?.isPrivate)).then(() => { flash('Browsing data cleared'); void refreshPrivacy(); });
+    return;
+  }
+  const privacySetting = event.target.closest('[data-privacy-setting]');
+  if (privacySetting) {
+    const key = privacySetting.dataset.privacySetting;
+    const value = ['firstPartyCookies', 'thirdPartyCookies'].includes(key) ? privacySetting.dataset.value : privacySetting.dataset.value === 'true';
+    void desktop?.privacy?.updateSettings({ [key]: value }).then(() => refreshPrivacy()); return;
+  }
+  if (event.target.closest('[data-screen-cancel]')) { void desktop?.privacy?.resolveScreen(privacyPrompt?.id, ''); privacyPrompt = null; renderPrivacy(); return; }
+  const screenSource = event.target.closest('[data-screen-source]');
+  if (screenSource) { void desktop?.privacy?.resolveScreen(privacyPrompt?.id, screenSource.dataset.screenSource); privacyPrompt = null; renderPrivacy(); return; }
+  const privacyChoice = event.target.closest('[data-privacy-choice]');
+  if (privacyChoice) { void answerPrivacyPrompt(privacyChoice.dataset.privacyChoice); return; }
+  const findDirection = event.target.closest('[data-find-direction]');
+  if (findDirection) { const query = document.querySelector('#find-input')?.value || ''; if (query) void browser?.find(query, { findNext: true, forward: findDirection.dataset.findDirection === 'next' }); return; }
+  if (event.target.closest('[data-find-close]')) { findOpen = false; void browser?.stopFind(); renderPrivacy(); return; }
   if (menuTrigger) { const menu = document.querySelector('#toolbar-menu'); menu.hidden = !menu.hidden; showToolbar(); return; }
+  if (event.target.closest('.toolbar-menu .menu-item') && !routeButton) {
+    document.querySelector('#toolbar-menu').hidden = true;
+    reportLayout();
+  }
   if (routeButton) {
     navigate(routeButton.dataset.route);
     document.querySelector('#toolbar-menu')?.setAttribute('hidden', '');
@@ -223,6 +334,10 @@ document.addEventListener('click', event => {
   }
   if (action === 'home') { void goHome(); return; }
   if (action === 'new-tab') { createTab(); return; }
+  if (action === 'private-tab') { document.querySelector('#toolbar-menu').hidden = true; void browser?.openPrivateTab(); return; }
+  if (action === 'find') { document.querySelector('#toolbar-menu').hidden = true; findOpen = true; renderPrivacy(); showToolbar(); return; }
+  if (action === 'mute') { const tab = activeTab(); if (tab) void browser?.setMuted(tab.id, !tab.muted); return; }
+  if (action === 'zoom-out' || action === 'zoom-in') { const tab = activeTab(); if (tab) void browser?.setZoom(tab.id, Math.max(.5, Math.min(3, tab.zoom + (action === 'zoom-in' ? .1 : -.1)))); return; }
   if (closeTab) { void browser?.closeTab(closeTab.dataset.closeTab); return; }
   if (tabButton) { void browser?.activateTab(tabButton.dataset.tab); return; }
   if (action === 'back') { void browser?.back(); return; }
@@ -240,6 +355,10 @@ document.addEventListener('submit', event => {
   }
 });
 document.addEventListener('keydown', event => {
+  if (event.target.id === 'find-input') {
+    if (event.key === 'Enter') { event.preventDefault(); void browser?.find(event.target.value, { findNext: true, forward: !event.shiftKey }); }
+    return;
+  }
   if (event.target.id === 'address-input' && event.key === 'Enter') {
     event.preventDefault();
     void navigateAddress(event.target.value);
@@ -249,6 +368,12 @@ document.addEventListener('change', event => {
   const target = event.target;
   if (target.matches('[data-pref="font"]')) { prefs.font = target.value; persist(); applyPrefs(); }
   if (target.matches('[data-pref="engine"]')) { prefs.engine = target.value; persist(); flash(target.value + ' selected'); }
+  if (target.matches('[data-privacy-permission]')) {
+    void desktop?.privacy?.setPermission(activeId, target.dataset.privacyPermission, target.value).then(result => {
+      if (!result?.ok) flash(result?.error || 'Could not update permission.');
+      void refreshPrivacy();
+    });
+  }
 });
 document.addEventListener('click', event => {
   const target = event.target.closest('button[data-pref]');
