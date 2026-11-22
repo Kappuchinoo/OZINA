@@ -4,6 +4,7 @@
 .tab-add { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: var(--radius-pill); color: var(--text-muted); background: transparent; cursor: pointer; -webkit-app-region: no-drag; }.tab-add:hover { background: var(--surface-raised); color: var(--text); }
 .tab-mark { position: relative; width: 16px; height: 16px; display: grid; place-items: center; flex: 0 0 auto; overflow: hidden; border-radius: 4px; background: var(--surface-raised); color: var(--accent); font-size: 8px; font-weight: 600; }
 .tab-mark img { width: 14px; height: 14px; object-fit: contain; }
+.tab.is-private .tab-mark { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface-raised)); }
 .tab-mark.is-loading img, .tab-mark.is-loading { color: transparent; }
 .tab-mark.has-error::after { content: '!'; position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit; background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; }
 .tab-spinner { position: absolute; inset: 2px; border: 1.5px solid var(--line-strong); border-top-color: var(--accent); border-radius: 50%; animation: tab-spinner-rotate 700ms linear infinite; }
