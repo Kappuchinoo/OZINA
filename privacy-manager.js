@@ -149,7 +149,12 @@ class PrivacyManager {
   }
 
   valid(contents, origin, ses) {
-    return Boolean(contents && !contents.isDestroyed() && this.ownsContents(contents) && contents.session === ses && origin && originOf(contents.getURL()) === origin);
+    try {
+      return Boolean(contents && !contents.isDestroyed() && this.ownsContents(contents) && contents.session === ses && origin && originOf(contents.getURL()) === origin);
+    } catch {
+      // Electron may invalidate WebContents between lifecycle checks.
+      return false;
+    }
   }
 
   siteDecision(ses, origin, name) {
@@ -272,9 +277,10 @@ class PrivacyManager {
   }
 
   attachContents(contents) {
+    const ses = contents.session;
     contents.once('destroyed', () => {
-      this.cancelForContents(contents);
-      const notifications = this.notificationOnce.get(contents.session);
+      try { this.cancelForContents(contents); } catch { /* A destroyed tab must not escape into the main process. */ }
+      const notifications = this.notificationOnce.get(ses);
       for (const [origin, record] of notifications || []) if (record.contents === contents) notifications.delete(origin);
     });
     contents.on('select-bluetooth-device', (event, devices, callback) => {

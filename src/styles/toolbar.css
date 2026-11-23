@@ -25,6 +25,12 @@ body[data-window-display='windowed'] .toolbar-leading { padding-left: clamp(112p
 .tool-button { position: relative; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: var(--radius-sm); color: var(--text-muted); background: transparent; cursor: pointer; transition: color var(--motion-fast), background var(--motion-fast); }
 .tool-button:hover, .tool-button.is-active { color: var(--text); background: var(--surface-raised); }.tool-button.is-saved { color: var(--accent); }
 .tool-button:disabled { opacity: .34; cursor: default; pointer-events: none; }
+.tab-create { position: relative; display: flex; align-items: center; height: 34px; -webkit-app-region: no-drag; }
+.tab-create-options { width: 17px; height: 28px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 0 var(--radius-pill) var(--radius-pill) 0; color: var(--text-muted); background: transparent; cursor: pointer; }
+.tab-create-options:hover, .tab-create-options[aria-expanded='true'] { color: var(--text); background: var(--surface-raised); }
+.tab-create .tab-add { border-radius: var(--radius-pill) 0 0 var(--radius-pill); border-right: 0; }
+.tab-options-menu { position: absolute; z-index: 26; top: 42px; right: 0; width: 190px; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: 0 14px 40px #0005; }
+.tab-options-menu[hidden] { display: none; }
 .toolbar-menu { position: absolute; z-index: 25; top: 82px; right: 18px; width: 220px; max-height: calc(100vh - 100px); overflow: auto; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: 0 14px 40px #0005; }
 .menu-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px; border: 0; border-radius: 5px; background: transparent; color: var(--text); text-align: left; font-size: 12px; cursor: pointer; }.menu-item:hover { background: var(--surface-hover); }
 .menu-item span { margin-left: auto; color: var(--text-muted); font: 9px var(--font-mono); }
