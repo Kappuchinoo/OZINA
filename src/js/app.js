@@ -36,6 +36,8 @@ desktop?.onShortcut?.(shortcut => {
   if (shortcut === 'escape') {
     privacyPrompt = null; privacyPanelOpen = false; findOpen = false;
     document.querySelector('#toolbar-menu')?.setAttribute('hidden', '');
+    document.querySelector('#tab-options-menu')?.setAttribute('hidden', '');
+    document.querySelector('[data-tab-options]')?.setAttribute('aria-expanded', 'false');
     renderPrivacy();
   }
 });
@@ -68,11 +70,15 @@ function reportLayout() {
     const menuBottom = visible && menu && !menu.hidden
       ? Math.ceil(menu.getBoundingClientRect().bottom - toolbar.getBoundingClientRect().top)
       : 0;
+    const tabOptions = document.querySelector('#tab-options-menu');
+    const tabOptionsBottom = visible && tabOptions && !tabOptions.hidden
+      ? Math.ceil(tabOptions.getBoundingClientRect().bottom - toolbar.getBoundingClientRect().top)
+      : 0;
     const control = privacyRoot.querySelector('.oz-control-panel');
     const prompt = privacyRoot.querySelector('.privacy-prompt');
     const findBar = privacyRoot.querySelector('.find-bar');
     const findBottom = findBar ? Math.ceil(findBar.getBoundingClientRect().bottom) : 0;
-    const toolbarHeight = visible ? Math.max(toolbar.offsetHeight, menuBottom, findBottom) : route === 'browser' ? 5 : 0;
+    const toolbarHeight = visible ? Math.max(toolbar.offsetHeight, menuBottom, tabOptionsBottom, findBottom) : route === 'browser' ? 5 : 0;
     const privacyColumn = control || prompt;
     const rightInset = route === 'browser' && !activeTab()?.isHome && privacyColumn ? privacyColumn.offsetWidth + 40 : 0;
     browser?.setLayout({ toolbarHeight, rightInset });
@@ -80,6 +86,7 @@ function reportLayout() {
 }
 function renderToolbar(preserveAddress = false) {
   const menuWasOpen = document.querySelector('#toolbar-menu')?.hidden === false;
+  const tabOptionsWereOpen = document.querySelector('#tab-options-menu')?.hidden === false;
   const previousInput = document.querySelector('#address-input');
   const keepFocus = preserveAddress && previousInput === document.activeElement;
   const previousValue = keepFocus ? previousInput.value : '';
@@ -87,6 +94,9 @@ function renderToolbar(preserveAddress = false) {
   toolbarRoot.innerHTML = toolbarMarkup(tabs, activeId, platform, route, prefs.toolbarMode);
   const menu = document.querySelector('#toolbar-menu');
   if (menu && menuWasOpen) menu.hidden = false;
+  const tabOptionsMenu = document.querySelector('#tab-options-menu');
+  if (tabOptionsMenu && tabOptionsWereOpen) tabOptionsMenu.hidden = false;
+  document.querySelector('[data-tab-options]')?.setAttribute('aria-expanded', String(tabOptionsWereOpen));
   const input = document.querySelector('#address-input');
   const current = activeTab();
   if (keepFocus) {
@@ -148,7 +158,7 @@ function scheduleHide() {
   clearTimeout(hideTimer);
   hideTimer = setTimeout(() => {
     const toolbar = document.querySelector('.toolbar');
-    if (!privacyPanelOpen && !privacyPrompt && !findOpen && !toolbar?.matches(':hover') && !toolbar?.contains(document.activeElement) && !document.querySelector('#toolbar-menu:not([hidden])')) {
+    if (!privacyPanelOpen && !privacyPrompt && !findOpen && !toolbar?.matches(':hover') && !toolbar?.contains(document.activeElement) && !document.querySelector('#toolbar-menu:not([hidden]), #tab-options-menu:not([hidden])')) {
       toolbar?.classList.remove('is-visible');
       reportLayout();
     }
@@ -272,6 +282,8 @@ document.addEventListener('keydown', event => {
     renderPrivacy();
     if (activeTab()?.isLoading) void browser?.stop();
     document.querySelector('#toolbar-menu')?.setAttribute('hidden', '');
+    document.querySelector('#tab-options-menu')?.setAttribute('hidden', '');
+    document.querySelector('[data-tab-options]')?.setAttribute('aria-expanded', 'false');
     reportLayout();
     document.querySelector('#address-input')?.blur();
     scheduleHide();
@@ -286,12 +298,21 @@ document.addEventListener('click', event => {
   const closeTab = event.target.closest('[data-close-tab]');
   const tabButton = event.target.closest('[data-tab]');
   const menuTrigger = event.target.closest('[data-menu]');
+  const tabOptionsTrigger = event.target.closest('[data-tab-options]');
   const privacyToggle = event.target.closest('[data-privacy-toggle]');
+  const tabOptionsMenu = document.querySelector('#tab-options-menu');
+  if (tabOptionsMenu && !tabOptionsMenu.hidden && !event.target.closest('.tab-create')) {
+    tabOptionsMenu.hidden = true;
+    document.querySelector('[data-tab-options]')?.setAttribute('aria-expanded', 'false');
+    reportLayout();
+  }
   if (privacyPanelOpen && !event.target.closest('.oz-control-panel, [data-privacy-toggle]')) { privacyPanelOpen = false; renderPrivacy(); }
   if (windowAction) { desktop?.[windowAction === 'maximize' ? 'toggleMaximize' : windowAction]?.(); return; }
   if (privacyToggle) {
     privacyPanelOpen = !privacyPanelOpen;
     document.querySelector('#toolbar-menu').hidden = true;
+    if (tabOptionsMenu) tabOptionsMenu.hidden = true;
+    document.querySelector('[data-tab-options]')?.setAttribute('aria-expanded', 'false');
     showToolbar();
     void refreshPrivacy();
     return;
@@ -322,7 +343,19 @@ document.addEventListener('click', event => {
   const findDirection = event.target.closest('[data-find-direction]');
   if (findDirection) { const query = document.querySelector('#find-input')?.value || ''; if (query) void browser?.find(query, { findNext: true, forward: findDirection.dataset.findDirection === 'next' }); return; }
   if (event.target.closest('[data-find-close]')) { findOpen = false; void browser?.stopFind(); renderPrivacy(); return; }
-  if (menuTrigger) { const menu = document.querySelector('#toolbar-menu'); menu.hidden = !menu.hidden; showToolbar(); return; }
+  if (tabOptionsTrigger) {
+    if (tabOptionsMenu) tabOptionsMenu.hidden = !tabOptionsMenu.hidden;
+    document.querySelector('#toolbar-menu').hidden = true;
+    tabOptionsTrigger.setAttribute('aria-expanded', String(!tabOptionsMenu?.hidden));
+    showToolbar();
+    return;
+  }
+  if (menuTrigger) { const menu = document.querySelector('#toolbar-menu'); menu.hidden = !menu.hidden; if (tabOptionsMenu) tabOptionsMenu.hidden = true; document.querySelector('[data-tab-options]')?.setAttribute('aria-expanded', 'false'); showToolbar(); return; }
+  if (event.target.closest('#tab-options-menu .menu-item')) {
+    tabOptionsMenu.hidden = true;
+    document.querySelector('[data-tab-options]')?.setAttribute('aria-expanded', 'false');
+    reportLayout();
+  }
   if (event.target.closest('.toolbar-menu .menu-item') && !routeButton) {
     document.querySelector('#toolbar-menu').hidden = true;
     reportLayout();
@@ -334,7 +367,7 @@ document.addEventListener('click', event => {
   }
   if (action === 'home') { void goHome(); return; }
   if (action === 'new-tab') { createTab(); return; }
-  if (action === 'private-tab') { document.querySelector('#toolbar-menu').hidden = true; void browser?.openPrivateTab(); return; }
+  if (action === 'private-tab') { document.querySelector('#toolbar-menu')?.setAttribute('hidden', ''); tabOptionsMenu?.setAttribute('hidden', ''); void browser?.openPrivateTab(); return; }
   if (action === 'find') { document.querySelector('#toolbar-menu').hidden = true; findOpen = true; renderPrivacy(); showToolbar(); return; }
   if (action === 'mute') { const tab = activeTab(); if (tab) void browser?.setMuted(tab.id, !tab.muted); return; }
   if (action === 'zoom-out' || action === 'zoom-in') { const tab = activeTab(); if (tab) void browser?.setZoom(tab.id, Math.max(.5, Math.min(3, tab.zoom + (action === 'zoom-in' ? .1 : -.1)))); return; }
