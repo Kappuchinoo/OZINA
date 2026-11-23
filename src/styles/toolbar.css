@@ -18,7 +18,8 @@ body[data-window-display='windowed'] .toolbar-leading { padding-left: clamp(112p
 .tab-row { display: flex; width: 100%; height: 33px; margin-top: 6px; }
 .tab-strip { display: flex; min-width: 100px; width: 100%; align-items: center; gap: 4px; height: 33px; -webkit-app-region: drag; }
 .address-wrap { position: relative; width: 100%; min-width: 0; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 7px 0 12px; background: var(--surface-raised); border: 1px solid var(--line); border-radius: var(--radius-pill); transition: border-color var(--motion-fast), background var(--motion-fast); }
-.address-wrap:focus-within { border-color: var(--line-strong); background: var(--surface-hover); }
+.address-wrap:focus-within { border-color: var(--line); background: var(--surface-raised); }
+.address-wrap:focus-within .address-input { outline: none; box-shadow: none; }
 .address-input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--text); background: transparent; font-size: 12px; }
 .address-input::placeholder { color: var(--text-muted); }.address-icon { color: var(--text-muted); flex: 0 0 auto; }
 .toolbar-actions { display: flex; justify-self: end; gap: 2px; height: 34px; align-items: center; min-width: 0; }

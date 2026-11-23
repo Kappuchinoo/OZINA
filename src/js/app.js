@@ -193,6 +193,10 @@ function syncBrowserState(state) {
   const pageModeChanged = previousTab && current && previousTab.isHome !== current.isHome;
   if (current && (route === 'home' || route === 'browser' || previousActive !== activeId || pageModeChanged)) route = current.isHome ? 'home' : 'browser';
   renderToolbar(true);
+  if (current?.isHome && (previousActive !== activeId || pageModeChanged)) {
+    const input = document.querySelector('#address-input');
+    input?.focus();
+  }
   if (route !== previousRoute || previousActive !== activeId) renderView();
   if (route !== previousRoute || previousActive !== activeId) syncPageVisibility();
   if (current && !current.isHome) document.title = (current.title || current.url || 'New tab') + ' — OZINA';
