@@ -5,7 +5,8 @@
 .toolbar-main { height: 40px; display: grid; grid-template-columns: minmax(150px, 1fr) minmax(280px, min(44vw, 620px)) minmax(150px, 1fr); align-items: center; gap: 14px; }
 .toolbar-leading { display: flex; align-items: center; gap: 3px; min-width: 0; }
 body[data-window-display='windowed'] .toolbar-leading { padding-left: clamp(112px, 10vw, 160px); }
-.toolbar-navigation { display: flex; align-items: center; justify-content: center; gap: 0; width: 76px; height: 36px; flex: 0 0 auto; padding: 2px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: var(--surface-raised); }
+.toolbar-navigation { display: flex; align-items: center; justify-content: center; gap: 0; width: 76px; height: 36px; flex: 0 0 auto; transform: translateX(-24px); padding: 2px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: var(--surface-raised); }
+body[data-window-display='fullscreen'] .toolbar-navigation { transform: translateX(16px); }
 .toolbar-navigation .tool-button { width: 35px; height: 30px; border-radius: var(--radius-pill); }
 .toolbar-navigation .tool-button + .tool-button { border-left: 1px solid var(--line-strong); border-radius: 0 var(--radius-pill) var(--radius-pill) 0; }
 .toolbar-navigation .tool-button:first-child { border-radius: var(--radius-pill) 0 0 var(--radius-pill); }
@@ -27,7 +28,7 @@ body[data-window-display='windowed'] .toolbar-leading { padding-left: clamp(112p
 .tool-button:hover, .tool-button.is-active { color: var(--text); background: var(--surface-raised); }.tool-button.is-saved { color: var(--accent); }
 .tool-button:disabled { opacity: .34; cursor: default; pointer-events: none; }
 .tab-create { position: relative; display: flex; align-items: center; height: 34px; -webkit-app-region: no-drag; }
-.tab-create-options { width: 17px; height: 28px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 0 var(--radius-pill) var(--radius-pill) 0; color: var(--text-muted); background: transparent; cursor: pointer; }
+.tab-create-options { width: 22px; height: 34px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line); border-left: 0; border-radius: 0 var(--radius-pill) var(--radius-pill) 0; color: var(--text-muted); background: transparent; cursor: pointer; }
 .tab-create-options:hover, .tab-create-options[aria-expanded='true'] { color: var(--text); background: var(--surface-raised); }
 .tab-create .tab-add { border-radius: var(--radius-pill) 0 0 var(--radius-pill); border-right: 0; }
 .tab-options-menu { position: absolute; z-index: 26; top: 42px; right: 0; width: 190px; padding: 6px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: 0 14px 40px #0005; }
