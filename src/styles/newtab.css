@@ -3,8 +3,8 @@
 .home-clock { margin: 30px 0 4px; font-size: var(--type-display); font-weight: 400; letter-spacing: -.085em; line-height: 1; font-variant-numeric: tabular-nums; }
 .home-date { color: var(--text-muted); font-size: 12px; letter-spacing: .03em; }
 .search-box { width: min(540px, 88vw); height: 52px; margin-top: 24px; display: flex; align-items: center; gap: 13px; padding: 0 17px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); background: color-mix(in srgb, var(--surface) 78%, transparent); transition: border-color var(--motion-normal), background var(--motion-normal); }
-.search-box:focus-within { border-color: var(--accent); background: var(--surface); }.search-box .icon { color: var(--text-muted); }
-.search-input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 13px; }.search-input::placeholder { color: var(--text-muted); }
+.search-box:focus-within { border-color: var(--line-strong); background: color-mix(in srgb, var(--surface) 78%, transparent); }.search-box .icon { color: var(--text-muted); }
+.search-input { flex: 1; min-width: 0; border: 0; outline: 0; box-shadow: none; background: transparent; color: var(--text); font-size: 13px; }.search-input:focus, .search-input:focus-visible { outline: 0; box-shadow: none; }.search-input::placeholder { color: var(--text-muted); }
 .search-hint { font: 10px var(--font-mono); color: var(--text-faint); white-space: nowrap; }
 .shortcuts { width: min(550px, 90vw); margin-top: 40px; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
 .shortcut { display: flex; flex-direction: column; align-items: center; gap: 11px; min-width: 0; padding: 10px 4px; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text-muted); font-size: 10px; cursor: pointer; transition: transform var(--motion-fast), color var(--motion-fast); }

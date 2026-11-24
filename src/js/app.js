@@ -15,6 +15,8 @@ let tabs = [];
 let activeId = null;
 let browserState = { tabs: [], activeId: null };
 let route = 'home';
+const routeByTab = new Map();
+let pendingRouteForNewTab = null;
 let hideTimer;
 let toastTimer;
 let layoutFrame = 0;
@@ -172,12 +174,31 @@ function flash(message) {
 }
 function syncPageVisibility() { browser?.setPageVisible(route === 'browser'); reportLayout(); }
 function navigate(next) {
+  if (!['settings', 'bookmarks', 'history', 'downloads'].includes(next)) return;
+  void openRouteInNewTab(next);
+}
+function displayRoute(next) {
   route = next;
   renderToolbar();
   renderView();
   syncPageVisibility();
   showToolbar();
   document.querySelectorAll('[data-route]').forEach(button => button.classList.toggle('is-active', button.dataset.route === route));
+}
+async function openRouteInNewTab(next) {
+  if (!browser) return;
+  pendingRouteForNewTab = next;
+  try {
+    const state = await browser.createTab();
+    const id = state?.activeId || browserState.activeId;
+    if (!id) return;
+    routeByTab.set(id, next);
+    if (activeId === id) displayRoute(next);
+  } catch (error) {
+    flash(error?.message || 'Could not open a new tab.');
+  } finally {
+    pendingRouteForNewTab = null;
+  }
 }
 function syncBrowserState(state) {
   const previousActive = activeId;
@@ -189,9 +210,13 @@ function syncBrowserState(state) {
     mark: tab.title && tab.title !== 'New tab' ? tab.title.trim().slice(0, 1).toUpperCase() : 'O'
   }));
   activeId = browserState.activeId;
+  for (const id of routeByTab.keys()) if (!tabs.some(tab => tab.id === id)) routeByTab.delete(id);
+  if (activeId && pendingRouteForNewTab && previousActive !== activeId) routeByTab.set(activeId, pendingRouteForNewTab);
   const current = activeTab();
   const pageModeChanged = previousTab && current && previousTab.isHome !== current.isHome;
-  if (current && (route === 'home' || route === 'browser' || previousActive !== activeId || pageModeChanged)) route = current.isHome ? 'home' : 'browser';
+  if (current && (route === 'home' || route === 'browser' || previousActive !== activeId || pageModeChanged)) {
+    route = routeByTab.get(activeId) || (current.isHome ? 'home' : 'browser');
+  }
   renderToolbar(true);
   if (current?.isHome && (previousActive !== activeId || pageModeChanged)) {
     const input = document.querySelector('#address-input');
@@ -208,6 +233,8 @@ async function navigateAddress(value) {
   const query = String(value || '').trim();
   if (!query || !browser) return;
   if (query.length > 4096) { flash('Address is too long.'); return; }
+  const previousTabRoute = routeByTab.get(activeId);
+  routeByTab.delete(activeId);
   document.querySelector('#address-input')?.blur();
   document.querySelector('#home-search-input')?.blur();
   const previousRoute = route;
@@ -217,12 +244,14 @@ async function navigateAddress(value) {
   const result = await browser.navigate(query, prefs.engine);
   if (!result?.ok) {
     if (result?.invalid && previousRoute !== 'browser') {
+      if (previousTabRoute) routeByTab.set(activeId, previousTabRoute);
       route = previousRoute; renderToolbar(); renderView(); syncPageVisibility();
     }
     flash(result?.error || 'Could not navigate to that address.');
   }
 }
 async function goHome() {
+  routeByTab.delete(activeId);
   await browser?.showHome();
   const current = activeTab();
   if (current) {
